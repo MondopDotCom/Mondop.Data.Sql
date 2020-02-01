@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.1</TargetFrameworks>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Description>Package that builds and executes simple DML queries based on a POCO</Description>
-    <PackageReleaseNotes>0.0.1 - Initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>0.0.1 - Initial release
+0.0.2 - Added Ignore attribute</PackageReleaseNotes>
     <Authors>Marcel Vroone</Authors>
     <Company>It-actief</Company>
     <Product>Mondop</Product>
