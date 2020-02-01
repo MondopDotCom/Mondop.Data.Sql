@@ -8,8 +8,7 @@ namespace Mondop.Data.Sql.Tests
     public class InsertStatementBuilderTests
     {
         private InsertStatementBuilder _insertStatementBuilder;
-        private readonly MetaDataModelBuilder _metaDataModelBuilder = new MetaDataModelBuilder(
-            new AttributesMapping());
+        private readonly MetaDataModelBuilder _metaDataModelBuilder = new MetaDataModelBuilder();
 
         [TestInitialize]
         public void TestInitialize()
@@ -25,6 +24,7 @@ namespace Mondop.Data.Sql.Tests
 
             var expected = new StringBuilder();
             expected.Append("INSERT INTO [Schema].[Table](Data,Amount,Binary,Image)");
+            expected.Append(" OUTPUT inserted.RowVer");
             expected.Append(" VALUES (@Data,@Amount,@Binary,@Image)");
 
             var result = _insertStatementBuilder.Build(testPocoMetaData);
@@ -39,7 +39,7 @@ namespace Mondop.Data.Sql.Tests
 
             var expected = new StringBuilder();
             expected.Append("INSERT INTO [Schema].[Table](Data,Amount,Binary,Image)");
-            expected.Append(" OUTPUT inserted.Id");
+            expected.Append(" OUTPUT inserted.Id,inserted.RowVer");
             expected.Append(" VALUES (@Data,@Amount,@Binary,@Image)");
 
             var result = _insertStatementBuilder.Build(testPocoMetaData);

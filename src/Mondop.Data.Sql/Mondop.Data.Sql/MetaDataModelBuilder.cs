@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Mondop.Guard;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,16 +10,26 @@ namespace Mondop.Data.Sql
 {
     public class MetaDataModelBuilder
     {
-        private readonly IAtttributesMapping _atttributesMapping;
-
         private Dictionary<Type, Action<Attribute, EntityFieldMetaData>> _attributeHandlers = new Dictionary<Type, Action<Attribute, EntityFieldMetaData>>();
-        public MetaDataModelBuilder(IAtttributesMapping atttributesMapping)
-        {
-            _atttributesMapping = Ensure.IsNotNull(atttributesMapping, nameof(atttributesMapping));
 
+        private Dictionary<Type, string> _defaultTypes = new Dictionary<Type, string>();
+        public MetaDataModelBuilder()
+        {
             _attributeHandlers.Add(typeof(KeyAttribute), (a, m) => { m.IsPrimaryKey = true; });
             _attributeHandlers.Add(typeof(DatabaseGeneratedAttribute), (a, m) => { m.IsDatabaseGeneratedKey = ((DatabaseGeneratedAttribute)a).DatabaseGeneratedOption == DatabaseGeneratedOption.Identity; });
-            _attributeHandlers.Add(_atttributesMapping.ColumnAttribute.AttributeType, SetColumnAttribute);
+            _attributeHandlers.Add(typeof(ColumnAttribute), (a,m) => { SetColumnAttribute((ColumnAttribute)a, m); });
+            _attributeHandlers.Add(typeof(TimestampAttribute), (a,m) => { SetTimestampAttribute((TimestampAttribute)a, m); });
+
+            _defaultTypes.Add(typeof(int), "int");
+            _defaultTypes.Add(typeof(Guid), "uniqueidentifier");
+            _defaultTypes.Add(typeof(decimal), "decimal");
+            _defaultTypes.Add(typeof(byte[]), "varbinary(max)");
+            _defaultTypes.Add(typeof(string), "nvarchar(max)");
+            _defaultTypes.Add(typeof(DateTime), "datetime");
+            _defaultTypes.Add(typeof(bool), "bit");
+            _defaultTypes.Add(typeof(short), "smallint");
+            _defaultTypes.Add(typeof(byte), "tinyint");
+
         }
 
         public EntityMetaData Build(Type entityType)
@@ -38,13 +47,17 @@ namespace Mondop.Data.Sql
         {
             var typeInfo = entityType.GetTypeInfo();
 
-            var tableAttribute = typeInfo.GetCustomAttribute(_atttributesMapping.TableAttribute.AttributeType);
+            var tableAttribute = typeInfo.GetCustomAttribute(typeof(TableAttribute)) as TableAttribute;
 
             if (tableAttribute == null)
-                throw new InvalidOperationException($"TableAttribute {_atttributesMapping.TableAttribute.AttributeType} not found on type {entityType}");
+            {
+                metaData.SchemaName = "";
+                metaData.TableName = entityType.Name;
+                return;
+            }
 
-            metaData.SchemaName = _atttributesMapping.TableAttribute.SchemaName(tableAttribute);
-            metaData.TableName = _atttributesMapping.TableAttribute.TableName(tableAttribute);
+            metaData.SchemaName = tableAttribute.Schema;
+            metaData.TableName = tableAttribute.Name;
         }
         private void GetFields(Type entityType, EntityMetaData metaData)
         {
@@ -58,6 +71,8 @@ namespace Mondop.Data.Sql
         {
             var fieldMetaData = new EntityFieldMetaData();
             fieldMetaData.Name = propertyInfo.Name;
+            fieldMetaData.DbColumnName = propertyInfo.Name;
+            GetDefaultSqlType(propertyInfo.PropertyType,fieldMetaData);
             metaData.Fields.Add(fieldMetaData);
 
             var attributes = propertyInfo.GetCustomAttributes();
@@ -70,16 +85,31 @@ namespace Mondop.Data.Sql
                 }
             }
         }
+
+        private void GetDefaultSqlType(Type propertyType, EntityFieldMetaData m)
+        {
+            string defaultType = "";
+            if (_defaultTypes.ContainsKey(propertyType))
+                defaultType = _defaultTypes[propertyType];
+
+            SetColumnType(defaultType, m);
+        }
                
         private void GetPrimaryKey(EntityMetaData metaData)
         {
             metaData.PrimaryKey = metaData.Fields.Where(field => field.IsPrimaryKey).ToList();
         }
 
-        private void SetColumnAttribute(Attribute a,EntityFieldMetaData m)
+        private void SetColumnAttribute(ColumnAttribute a,EntityFieldMetaData m)
         {
-            m.DbColumnName = _atttributesMapping.ColumnAttribute.ColumnName(a);
-            SetColumnType(_atttributesMapping.ColumnAttribute.DataType(a), m);
+            m.DbColumnName = a.Name;
+            SetColumnType(a.TypeName, m);
+        }
+
+        private void SetTimestampAttribute(TimestampAttribute a, EntityFieldMetaData m)
+        {
+            m.IsRowVersion = true;
+            SetColumnType("Rowversion",m);
         }
 
         private void SetColumnType(string dataType,EntityFieldMetaData m)

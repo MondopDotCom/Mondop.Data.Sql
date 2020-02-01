@@ -10,7 +10,7 @@ namespace Mondop.Data.Sql
         public Command Build(EntityMetaData metaData)
         {
             var insertFields = metaData.Fields
-                .Where(field => !field.IsDatabaseGeneratedKey)
+                .Where(field => !field.IsDatabaseGeneratedKey && !field.IsRowVersion)
                 .Select(field => field.DbColumnName)
                 .ToArray();
 
@@ -22,12 +22,13 @@ namespace Mondop.Data.Sql
             sb.Append("](");
             sb.Append(string.Join(",", insertFields));
             sb.Append(")");
-
-            var databaseGeneratedKeys = metaData.PrimaryKey.Where(field => field.IsDatabaseGeneratedKey).ToArray();
-            if (databaseGeneratedKeys.Length > 0)
+            
+            var outputFields = metaData.PrimaryKey.Where(field => field.IsDatabaseGeneratedKey).Concat(
+                metaData.Fields.Where(field => field.IsRowVersion)).Select(field=> field.DbColumnName).Distinct().ToArray();
+            if (outputFields.Length > 0)
             {
                 sb.Append(" OUTPUT ");
-                sb.Append(string.Join(",", databaseGeneratedKeys.Select(key => "inserted." + key.DbColumnName)));
+                sb.Append(string.Join(",", outputFields.Select(field => "inserted." + field)));
             }
 
             sb.Append(" VALUES (");

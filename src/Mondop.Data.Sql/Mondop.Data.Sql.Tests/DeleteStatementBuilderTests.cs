@@ -8,8 +8,7 @@ namespace Mondop.Data.Sql.Tests
     public class DeleteStatementBuilderTests
     {
         private DeleteStatementBuilder deleteStatementBuilder;
-        private readonly MetaDataModelBuilder _metaDataModelBuilder = new MetaDataModelBuilder(
-            new AttributesMapping());
+        private readonly MetaDataModelBuilder _metaDataModelBuilder = new MetaDataModelBuilder();
 
 
         [TestInitialize]
@@ -19,10 +18,11 @@ namespace Mondop.Data.Sql.Tests
         }
 
         [TestMethod]
-        public void CallBuild_WithPocoWithoutKeys_Expect_CorrectStatement()
+        public void CallBuild_WithPocoWithoutKeysAndRowVersion_Expect_CorrectStatement()
         {
             var testPocoMetaData = _metaDataModelBuilder.Build(typeof(TestPoco));
             testPocoMetaData.PrimaryKey.Clear();
+            deleteStatementBuilder.Options.UseRowVersionForDelete = false;
 
             var result = deleteStatementBuilder.Build(testPocoMetaData);
 
@@ -34,8 +34,9 @@ namespace Mondop.Data.Sql.Tests
         }
 
         [TestMethod]
-        public void CallBuild_WithPocoWithKeys_Expect_CorrectStatement()
+        public void CallBuild_WithPocoWithKeysWithoutRowVersion_Expect_CorrectStatement()
         {
+            deleteStatementBuilder.Options.UseRowVersionForDelete = false;
 
             var testPocoMetaData = _metaDataModelBuilder.Build(typeof(TestPoco));
 
@@ -43,11 +44,28 @@ namespace Mondop.Data.Sql.Tests
 
             var sb = new StringBuilder();
             sb.AppendLine("DELETE FROM [Schema].[Table]");
-            sb.AppendLine(" WHERE Id=@Id");
+            sb.AppendLine("WHERE Id=@Id");
 
             result.CommandText.Should().Be(sb.ToString());
             result.Parameters.Should().HaveCount(1);
             result.Parameters.Should().ContainSingle(x => x.Name == "@Id");
+        }
+
+        [TestMethod]
+        public void CallBuild_WithPocoWithKeysWithRowVersion_Expect_CorrectStatement()
+        {
+            var testPocoMetaData = _metaDataModelBuilder.Build(typeof(TestPoco));
+
+            var result = deleteStatementBuilder.Build(testPocoMetaData);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("DELETE FROM [Schema].[Table]");
+            sb.AppendLine("WHERE Id=@Id AND RowVer=@RowVer");
+
+            result.CommandText.Should().Be(sb.ToString());
+            result.Parameters.Should().HaveCount(2);
+            result.Parameters.Should().ContainSingle(x => x.Name == "@Id");
+            result.Parameters.Should().ContainSingle(x => x.Name == "@RowVer");
         }
     }
 }

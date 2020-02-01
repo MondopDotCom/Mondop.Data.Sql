@@ -9,5 +9,6 @@
         public string Precision { get; set; }
         public bool IsPrimaryKey { get; set; }
         public bool IsDatabaseGeneratedKey { get; set; }
+        public bool IsRowVersion { get; set; }
     }
 }
