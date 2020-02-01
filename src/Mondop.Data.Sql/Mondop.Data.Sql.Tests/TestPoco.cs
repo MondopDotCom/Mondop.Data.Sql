@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Mondop.Data.Sql.Annotations;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -22,20 +22,10 @@ namespace Mondop.Data.Sql.Tests
         [Column("Image", TypeName = "image")]
         public byte[] ImageData { get; set; }
 
+        [Ignore]
+        public string IgnoreData { get; set; }
+
         [Column("RowVer"), Timestamp]
-        public byte[] RowVer { get; set; }
-    }
-
-    public class TestPocoUndecorated
-    {
-        [Key]
-        public Guid TestId { get; set; }
-        public string DataField { get; set; }
-        public decimal AmountField { get; set; }
-        public byte[] BinaryData { get; set; }
-        public byte[] ImageData { get; set; }
-
-        [Timestamp]
         public byte[] RowVer { get; set; }
     }
 }

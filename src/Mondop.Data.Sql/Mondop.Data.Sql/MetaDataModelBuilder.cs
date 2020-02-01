@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Mondop.Data.Sql.Annotations;
 
 namespace Mondop.Data.Sql
 {
@@ -73,17 +74,21 @@ namespace Mondop.Data.Sql
             fieldMetaData.Name = propertyInfo.Name;
             fieldMetaData.DbColumnName = propertyInfo.Name;
             GetDefaultSqlType(propertyInfo.PropertyType,fieldMetaData);
-            metaData.Fields.Add(fieldMetaData);
 
             var attributes = propertyInfo.GetCustomAttributes();
             foreach (var attribute in attributes)
             {
+                if (attribute is IgnoreAttribute)
+                    return;
+
                 var attributeType = attribute.GetType();
                 if(_attributeHandlers.ContainsKey(attributeType))
                 {
                     _attributeHandlers[attributeType](attribute, fieldMetaData);
                 }
             }
+
+            metaData.Fields.Add(fieldMetaData);
         }
 
         private void GetDefaultSqlType(Type propertyType, EntityFieldMetaData m)
