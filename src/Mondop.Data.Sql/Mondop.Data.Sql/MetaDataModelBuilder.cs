@@ -36,6 +36,7 @@ namespace Mondop.Data.Sql
         public EntityMetaData Build(Type entityType)
         {
             var metaData = new EntityMetaData();
+            metaData.EntityType = entityType;
 
             GetTableName(entityType, metaData);
             GetFields(entityType, metaData);
@@ -70,7 +71,7 @@ namespace Mondop.Data.Sql
 
         private void GetField(PropertyInfo propertyInfo,EntityMetaData metaData)
         {
-            var fieldMetaData = new EntityFieldMetaData();
+            var fieldMetaData = new EntityFieldMetaData(metaData);
             fieldMetaData.Name = propertyInfo.Name;
             fieldMetaData.DbColumnName = propertyInfo.Name;
             GetDefaultSqlType(propertyInfo.PropertyType,fieldMetaData);

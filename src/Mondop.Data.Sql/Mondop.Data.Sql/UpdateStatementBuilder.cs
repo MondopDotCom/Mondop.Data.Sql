@@ -9,7 +9,8 @@ namespace Mondop.Data.Sql
 {
     public class UpdateStatementBuilder
     {
-        private readonly WhereClauseBuilder _whereClauseBuilder = new WhereClauseBuilder();
+        private readonly DmlWhereClauseBuilder _whereClauseBuilder = new DmlWhereClauseBuilder();
+        private readonly TableNameBuilder _tableNameBuilder = new TableNameBuilder();
 
         public UpdateStatementBuilder()
         {
@@ -24,11 +25,7 @@ namespace Mondop.Data.Sql
         public Command Build(EntityMetaData metaData)
         {
             var sb = new StringBuilder();
-            sb.Append("UPDATE [");
-            sb.Append(metaData.SchemaName);
-            sb.Append("].[");
-            sb.Append(metaData.TableName);
-            sb.AppendLine("] SET");
+            sb.AppendLine($"UPDATE {_tableNameBuilder.Build(metaData)} SET");
 
             var updatedFields = metaData.Fields.
                 Where(field => !field.IsPrimaryKey && !field.IsRowVersion);

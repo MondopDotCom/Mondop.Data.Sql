@@ -7,6 +7,8 @@ namespace Mondop.Data.Sql
 {
     public class InsertStatementBuilder
     {
+        private readonly TableNameBuilder _tableNameBuilder = new TableNameBuilder();
+
         public Command Build(EntityMetaData metaData)
         {
             var insertFields = metaData.Fields
@@ -15,11 +17,7 @@ namespace Mondop.Data.Sql
                 .ToArray();
 
             var sb = new StringBuilder();
-            sb.Append("INSERT INTO [");
-            sb.Append(metaData.SchemaName);
-            sb.Append("].[");
-            sb.Append(metaData.TableName);
-            sb.Append("](");
+            sb.Append($"INSERT INTO {_tableNameBuilder.Build(metaData)}(");
             sb.Append(string.Join(",", insertFields));
             sb.Append(")");
             

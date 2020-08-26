@@ -8,7 +8,8 @@ namespace Mondop.Data.Sql
 {
     public class DeleteStatementBuilder
     {
-        private readonly WhereClauseBuilder _whereClauseBuilder = new WhereClauseBuilder();
+        private readonly DmlWhereClauseBuilder _whereClauseBuilder = new DmlWhereClauseBuilder();
+        private readonly TableNameBuilder _tableNameBuilder = new TableNameBuilder();
 
         public DeleteStatementBuilder()
         {
@@ -23,12 +24,7 @@ namespace Mondop.Data.Sql
         public Command Build(EntityMetaData metaData)
         {
             var sb = new StringBuilder();
-            sb.Append("DELETE FROM [");
-            sb.Append(metaData.SchemaName);
-            sb.Append("].[");
-            sb.Append(metaData.TableName);
-            sb.AppendLine("]");
-
+            sb.AppendLine($"DELETE FROM {_tableNameBuilder.Build(metaData)}");
             sb.AppendLineIfNotNullOrWhiteSpace(_whereClauseBuilder.Build(metaData, Options.UseRowVersionForDelete));
 
             var result = new Command

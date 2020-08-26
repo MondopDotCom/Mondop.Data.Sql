@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.1</TargetFrameworks>
-    <Version>0.0.2</Version>
-    <Description>Package that builds and executes simple DML queries based on a POCO</Description>
+    <Version>0.0.4-Alpha002</Version>
+    <Description>Package that builds and executes simple queries based on a POCO for SQL Server</Description>
     <PackageReleaseNotes>0.0.1 - Initial release
-0.0.2 - Added Ignore attribute</PackageReleaseNotes>
+0.0.2 - Added Ignore attribute
+0.0.3 - Bug fix, when no schema specified.
+0.0.4 - Added SelectSatementBuilder</PackageReleaseNotes>
     <Authors>Marcel Vroone</Authors>
     <Company>It-actief</Company>
     <Product>Mondop</Product>
@@ -17,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mondop.Core" Version="1.2.2" />
+    <PackageReference Include="Mondop.Expressions" Version="0.0.3-ALPHA001" />
     <PackageReference Include="Mondop.Guard" Version="1.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
   </ItemGroup>

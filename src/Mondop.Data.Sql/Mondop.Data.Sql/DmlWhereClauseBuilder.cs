@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Mondop.Data.Sql
 {
-    public class WhereClauseBuilder
+    public class DmlWhereClauseBuilder
     {
         public List<EntityFieldMetaData> GetFields(EntityMetaData metaData,bool useRowVersion)
         {
